@@ -1,0 +1,133 @@
+model User {
+  id                String     @id @default(uuid())
+  name              String
+  email             String     @unique
+  emailVerified     Boolean    @default(false)
+  image             String?
+  role              UserRole   @default(CUSTOMER)
+  status            UserStatus @default(ACTIVE)
+  isDeleted         Boolean    @default(false)
+  deletedAt         DateTime?
+  needPasswordReset Boolean    @default(false)
+  rememberMe        Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@map("verifications")
+}
+
+model Dentist {
+  id             String         @id @default(uuid())
+  userId         String         @unique
+  licenseNumber  String         @unique
+  specialization Specialization @default(GENERAL)
+  clinicName     String
+  clinicAddress  String
+  bio            String?
+  yearsExp       Int            @default(0)
+  rating         Float          @default(0)
+  reviewCount    Int            @default(0)
+  isVerified     Boolean        @default(false)
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  reviews DentistReview[]
+
+  @@map("dentists")
+}
+
+model DentistReview {
+  id         String   @id @default(uuid())
+  dentistId  String
+  reviewerId String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  dentist Dentist @relation(fields: [dentistId], references: [id], onDelete: Cascade)
+
+  @@map("dentist_reviews")
+}
+
+enum Specialization {
+  GENERAL
+  ORTHODONTICS
+  PERIODONTICS
+  ENDODONTICS
+  ORAL_SURGERY
+  PEDIATRIC
+  COSMETIC
+  IMPLANTOLOGY
+}
+
+enum UserRole {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  DELETED
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}

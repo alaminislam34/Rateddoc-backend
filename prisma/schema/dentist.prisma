@@ -1,0 +1,45 @@
+model Dentist {
+  id            String         @id @default(uuid())
+  userId        String         @unique
+  licenseNumber String         @unique
+  specialization Specialization @default(GENERAL)
+  clinicName    String
+  clinicAddress String
+  bio           String?
+  yearsExp      Int            @default(0)
+  rating        Float          @default(0)
+  reviewCount   Int            @default(0)
+  isVerified    Boolean        @default(false)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  reviews DentistReview[]
+
+  @@map("dentists")
+}
+
+model DentistReview {
+  id         String   @id @default(uuid())
+  dentistId  String
+  reviewerId String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  dentist Dentist @relation(fields: [dentistId], references: [id], onDelete: Cascade)
+
+  @@map("dentist_reviews")
+}
+
+enum Specialization {
+  GENERAL
+  ORTHODONTICS
+  PERIODONTICS
+  ENDODONTICS
+  ORAL_SURGERY
+  PEDIATRIC
+  COSMETIC
+  IMPLANTOLOGY
+}
